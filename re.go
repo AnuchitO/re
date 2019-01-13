@@ -22,7 +22,7 @@ func main() {
 	for {
 		info, err := os.Lstat(dir)
 		if err != nil {
-			log.Fatal("can't open file", err)
+			log.Fatal("can't get file info.", err)
 		}
 		mod := info.ModTime().Unix()
 

@@ -8,6 +8,13 @@ import (
 	"time"
 )
 
+func run(prog string, params ...string) {
+	cmd := exec.Command(prog, params...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Run()
+}
+
 func main() {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -29,11 +36,8 @@ func main() {
 		if lastmod < mod {
 			lastmod = mod
 
-			fmt.Println("\n\nrerun")
-			cmd := exec.Command(prog, params...)
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			cmd.Run()
+			fmt.Println("\n\nrerunx")
+			run(prog, params...)
 		}
 
 		time.Sleep(800 * time.Millisecond)

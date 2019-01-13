@@ -2,36 +2,40 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
+	"time"
 )
 
 func main() {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// #read file info
-	//info, err := os.Lstat("./data/data_test.go")
-	//if err != nil {
-	//	log.Fatal("can't open file", err)
-	//}
-	////	pretty.Println(info)
-	//mod := info.ModTime()
-	//fmt.Println(mod.Unix())
-	//fmt.Println(mod.UnixNano())
-
-	// #store info
-
-	// #check changing
-
-	// #run command
+	var lastmod int64
 	args := os.Args
 	prog := args[1]
 	params := args[2:]
-	fmt.Println(prog)
-	fmt.Println(params)
 
-	cmd := exec.Command(prog, params...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	fmt.Println(err)
+	for {
+		info, err := os.Lstat(dir)
+		if err != nil {
+			log.Fatal("can't open file", err)
+		}
+		mod := info.ModTime().Unix()
+
+		if lastmod < mod {
+			lastmod = mod
+
+			fmt.Println("\n\nrerun")
+			cmd := exec.Command(prog, params...)
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			cmd.Run()
+		}
+
+		time.Sleep(800 * time.Millisecond)
+	}
 }

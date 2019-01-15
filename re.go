@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -15,31 +17,56 @@ func run(prog string, params ...string) {
 	cmd.Run()
 }
 
+func lstat(path string, files map[string]int64) int64 {
+	info, err := os.Lstat(path)
+	if err != nil {
+		if strings.Contains(err.Error(), "no such file or directory") {
+			delete(files, path)
+			return 0
+		}
+		log.Fatal("can't get file info.", err)
+	}
+	mod := info.ModTime().Unix()
+	return mod
+}
+
 func main() {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var lastmod int64
 	args := os.Args
+
+	// TODO: handle index out of range
 	prog := args[1]
 	params := args[2:]
 
-	for {
-		info, err := os.Lstat(dir)
-		if err != nil {
-			log.Fatal("can't get file info.", err)
+	files := map[string]int64{}
+	err = filepath.Walk(dir, func(path string, fi os.FileInfo, err error) error {
+		if !strings.Contains(path, "/.git") {
+			files[path] = 0
 		}
-		mod := info.ModTime().Unix()
+		return nil
+	})
+	if err != nil {
+		log.Fatal("walk through file error", err)
+	}
 
-		if lastmod < mod {
-			lastmod = mod
+	for {
+		hasChanged := false
+		for path, lastmod := range files {
+			mod := lstat(path, files)
+			if lastmod < mod {
+				files[path] = mod
+				hasChanged = true
+			}
+		}
 
-			fmt.Println("\n\nrerunx")
+		if hasChanged {
+			fmt.Println("\n\nrerun")
 			run(prog, params...)
 		}
-
 		time.Sleep(800 * time.Millisecond)
 	}
 }

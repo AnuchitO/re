@@ -1,17 +1,15 @@
 # re
 
-`re` is a program for rerun your command when files changed with a focus on simplicity.
-
-re is just the program take your go command to rerun whenever file change.
-re is easy to use just type `re` and follow with your command.
+`re` is a program for rerun your command when files change with a focus on simplicity.
 
 - `re` is easy to type.
-- Watch files to run tests.
-- Watch your .Go files and restart your processes without any configuration hassle
+- test your test command w
+- zero config is
 
 # Usage
+re is easy to use just type `re` and follow with your command.
 ```
-re [any command]
+re [command]
 ```
 
 # examples
@@ -22,15 +20,16 @@ re go test -v .
 
 ![tdd](example_tdd.gif)
 
-## run rest api
+## rerun api service
 - TODO
 
 ## Feature
-* [ ] run test wherever you want me to change
-* [ ] Watching nested files and directories
-* [ ] Watching single files or directories
+* [x] rerun one time command e.g. `go test`
+* [ ] interrupt and rerun
+* [x] Watching nested files
+* [x] Watching single files
 * [ ] reload app when file change
-* [ ] configurable optionx
+* [ ] configurable option
 
 ## Contribute
 - please send a PR.

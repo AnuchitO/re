@@ -64,7 +64,7 @@ func main() {
 		}
 
 		if hasChanged {
-			fmt.Println("\n\nrerun")
+			fmt.Println("\nrerun")
 			run(prog, params...)
 		}
 		time.Sleep(800 * time.Millisecond)

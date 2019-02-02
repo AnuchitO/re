@@ -43,16 +43,15 @@ func splitCommand(args []string) (prog string, params []string, err error) {
 }
 
 func main() {
-	dir, err := os.Getwd()
+	prog, params, err := splitCommand(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	args := os.Args
-
-	// TODO: handle index out of range
-	prog := args[1]
-	params := args[2:]
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	files := map[string]int64{}
 	err = filepath.Walk(dir, func(path string, fi os.FileInfo, err error) error {

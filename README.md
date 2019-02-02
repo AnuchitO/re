@@ -18,7 +18,7 @@ re [command]
 re go test -v .
 ```
 
-![tdd](example_tdd.gif)
+[example use for go tdd](https://imgur.com/a/FQgvJny)
 
 ## rerun api service
 - TODO

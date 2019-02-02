@@ -5,6 +5,10 @@
 - `re` is easy to type.
 - test your test command w
 - zero config is
+# Installation
+```
+go install github.com/AnuchitO/re
+```
 
 # Usage
 re is easy to use just type `re` and follow with your command.

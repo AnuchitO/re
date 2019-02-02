@@ -30,6 +30,7 @@ re go test -v .
 * [x] Watching single files
 * [ ] reload app when file change
 * [ ] configurable option
+* [ ] should clear screen before rerun command
 
 ## Contribute
 - please send a PR.

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -28,6 +29,17 @@ func lstat(path string, files map[string]int64) int64 {
 	}
 	mod := info.ModTime().Unix()
 	return mod
+}
+
+func splitCommand(args []string) (prog string, params []string, err error) {
+	if len(args) < 2 {
+		err = errors.New("you should add command after re [command], e.g. 're go test -v .'")
+		return
+	}
+
+	prog = args[1]
+	params = args[2:]
+	return
 }
 
 func main() {

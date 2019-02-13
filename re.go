@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -16,19 +15,6 @@ func run(prog string, params ...string) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Run()
-}
-
-func lstat(path string, files map[string]int64) int64 {
-	info, err := os.Lstat(path)
-	if err != nil {
-		if strings.Contains(err.Error(), "no such file or directory") {
-			delete(files, path)
-			return 0
-		}
-		log.Fatal("can't get file info.", err)
-	}
-	mod := info.ModTime().Unix()
-	return mod
 }
 
 func splitCommand(args []string) (prog string, params []string, err error) {
@@ -53,31 +39,34 @@ func main() {
 		log.Fatal(err)
 	}
 
-	files := map[string]int64{}
-	err = filepath.Walk(dir, func(path string, fi os.FileInfo, err error) error {
-		if !strings.Contains(path, "/.git") {
-			files[path] = 0
-		}
-		return nil
-	})
-	if err != nil {
-		log.Fatal("walk through file error", err)
-	}
-
+	startTime := time.Now()
 	for {
 		hasChanged := false
-		for path, lastmod := range files {
-			mod := lstat(path, files)
-			if lastmod < mod {
-				files[path] = mod
-				hasChanged = true
+		filepath.Walk(dir, func(path string, fi os.FileInfo, err error) error {
+			if path == ".git" && fi.IsDir() {
+				log.Println("skipping .git directory")
+				return filepath.SkipDir
 			}
-		}
+
+			// ignore hidden files
+			if filepath.Base(path)[0] == '.' {
+				return nil
+			}
+
+			if fi.ModTime().After(startTime) {
+				hasChanged = true
+				startTime = time.Now()
+				return errors.New("reload immediately: stop walking")
+			}
+
+			return nil
+		})
 
 		if hasChanged {
 			fmt.Println("\nrerun")
 			run(prog, params...)
 		}
+
 		time.Sleep(800 * time.Millisecond)
 	}
 }

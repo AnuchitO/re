@@ -37,28 +37,14 @@ func newCommandRunner(prog string, args ...string) *exec.Cmd {
 
 // Run starts the runner
 func (rn *runner) Run() error {
-	// kill the ongoing process
-	if rn.cmd != nil && rn.cmd.Process != nil {
-		done := make(chan struct{})
-		go func() {
-			rn.cmd.Wait()
-			close(done)
-		}()
-
-		// try soft kill
-		rn.cmd.Process.Signal(os.Interrupt)
-		select {
-		case <-time.After(3 * time.Second):
-			// go hard because soft is not always the solution
-			err := rn.cmd.Process.Kill()
-			if err != nil {
-				return errors.New("Fail killing on going process")
-			}
-		case <-done:
+	if rn.IsCommandRunning() {
+		err := rn.KillCommand()
+		if err != nil {
+			return err
 		}
-
 		rn.cmd = nil
 	}
+
 	// start the new one
 	rn.cmd = newCommandRunner(rn.prog, rn.args...)
 	err := rn.cmd.Start()
@@ -69,6 +55,32 @@ func (rn *runner) Run() error {
 		rn.cmd.Wait()
 		rn.cmd = nil
 	}()
+
+	return nil
+}
+
+func (rn *runner) IsCommandRunning() bool {
+	return rn.cmd != nil && rn.cmd.Process != nil
+}
+
+func (rn *runner) KillCommand() error {
+	done := make(chan struct{})
+	go func() {
+		rn.cmd.Wait()
+		close(done)
+	}()
+
+	// try soft kill
+	rn.cmd.Process.Signal(os.Interrupt)
+	select {
+	case <-time.After(3 * time.Second):
+		// go hard because soft is not always the solution
+		err := rn.cmd.Process.Kill()
+		if err != nil {
+			return errors.New("Fail killing on going process")
+		}
+	case <-done:
+	}
 
 	return nil
 }

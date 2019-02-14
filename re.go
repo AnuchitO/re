@@ -35,7 +35,11 @@ func main() {
 
 	// doneChannel := make(chan struct{})
 	taskRunner := runner.NewRunner(prog, params...)
-	taskRunner.Run()
+	err = taskRunner.Run()
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	startTime := time.Now()
 	for {
 		hasChanged := false
@@ -60,8 +64,12 @@ func main() {
 		})
 
 		if hasChanged {
-			fmt.Printf("\n============ Rerun ============\n\n")
-			taskRunner.Run()
+			err := taskRunner.Run()
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Printf("\n============ Rerun ============\n\n")
+			}
 		}
 
 		time.Sleep(800 * time.Millisecond)

@@ -5,17 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"time"
-)
 
-func run(prog string, params ...string) {
-	cmd := exec.Command(prog, params...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
-}
+	"github.com/AnuchitO/re/runner"
+)
 
 func splitCommand(args []string) (prog string, params []string, err error) {
 	if len(args) < 2 {
@@ -37,6 +31,13 @@ func main() {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// doneChannel := make(chan struct{})
+	taskRunner := runner.NewRunner(prog, params...)
+	err = taskRunner.Run()
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	startTime := time.Now()
@@ -63,8 +64,12 @@ func main() {
 		})
 
 		if hasChanged {
-			fmt.Println("\nrerun")
-			run(prog, params...)
+			err := taskRunner.Run()
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Printf("\n============ Rerun ============\n\n")
+			}
 		}
 
 		time.Sleep(800 * time.Millisecond)

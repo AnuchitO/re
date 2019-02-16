@@ -29,10 +29,10 @@ re go test -v .
 
 ## Feature
 * [x] rerun one time command e.g. `go test`
-* [ ] interrupt and rerun
+* [x] interrupt and rerun
 * [x] Watching nested files
 * [x] Watching single files
-* [ ] reload app when file change
+* [x] reload app when file change
 * [ ] configurable option
 * [ ] should clear screen before rerun command
 

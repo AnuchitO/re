@@ -7,7 +7,7 @@
 - zero config is
 # Installation
 ```
-go install github.com/AnuchitO/re
+go get github.com/AnuchitO/re
 ```
 
 # Usage

@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/AnuchitO/re/runner"
@@ -34,14 +36,38 @@ func main() {
 	}
 
 	// doneChannel := make(chan struct{})
+	stop := make(chan struct{})
+	var wg sync.WaitGroup
+	wg.Add(1)
 	taskRunner := runner.NewRunner(prog, params...)
-	err = taskRunner.Run()
+	go run(dir, taskRunner, stop, &wg)
+
+	sig := make(chan os.Signal)
+	signal.Notify(sig, os.Interrupt)
+
+	<-sig
+	close(stop)
+	err = taskRunner.KillCommand()
 	if err != nil {
 		fmt.Println(err)
 	}
+	wg.Wait()
+	fmt.Println("process terminated")
+}
 
+func run(dir string, taskRunner *runner.Runner, stop chan struct{}, wg *sync.WaitGroup) {
+	defer wg.Done()
 	startTime := time.Now()
+	err := taskRunner.Run()
+	if err != nil {
+		fmt.Println(err)
+	}
 	for {
+		select {
+		case <-stop:
+			return
+		default:
+		}
 		hasChanged := false
 		filepath.Walk(dir, func(path string, fi os.FileInfo, err error) error {
 			if path == ".git" && fi.IsDir() {

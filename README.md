@@ -44,4 +44,4 @@ re go test -v .
 - please send a PR.
 
 ## License
-[MIT](https://github.com/labstack/echo/blob/master/LICENSE)
+[MIT](https://github.com/AnuchitO/re/blob/master/LICENSE)

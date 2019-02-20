@@ -37,6 +37,7 @@ re go test -v .
 * [x] Watching single files
 * [x] reload app when file change
 * [ ] configurable option
+* [ ] skip file in .gitignore
 * [ ] should clear screen before rerun command
 
 ## Contribute

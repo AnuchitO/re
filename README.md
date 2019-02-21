@@ -5,7 +5,7 @@
 - `re` is easy to type.
 - NO dependency use only standard library in go
 - zero config
-- 
+-
 - test your test command w
 
 # Installation
@@ -25,7 +25,7 @@ re [command]
 re go test -v .
 ```
 
-[example use for go tdd](https://imgur.com/a/FQgvJny)
+![go tdd](../assets/example_tdd_i.gif?raw=true)
 
 ## rerun api service
 - TODO

@@ -7,10 +7,16 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/AnuchitO/re/runner"
+)
+
+var (
+	SkipFile = errors.New("re: skip file")
+	StopWalk = errors.New("re: stop walk")
 )
 
 func splitCommand(args []string) (prog string, params []string, err error) {
@@ -57,47 +63,74 @@ func main() {
 
 func run(dir string, taskRunner *runner.Runner, stop chan struct{}, wg *sync.WaitGroup) {
 	defer wg.Done()
-	startTime := time.Now()
-	err := taskRunner.Run()
-	if err != nil {
+
+	if err := taskRunner.Run(); err != nil {
 		fmt.Println(err)
 	}
+
+	var (
+		// changes notify when file modification time got changes.
+		changes = make(chan struct{})
+		// quit use for notify walk goroutine to stop walking.
+		quit = make(chan struct{})
+	)
+
+	wg.Add(1)
+	go func(dir string, changes chan<- struct{}, quit <-chan struct{}, wg *sync.WaitGroup) {
+		defer wg.Done()
+
+		now := time.Now()
+		for {
+			select {
+			case <-quit:
+				return
+			default:
+				filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+					if err != nil {
+						return err
+					}
+					if err := detectSkipFile(info); err != nil {
+						if err == filepath.SkipDir {
+							return err
+						}
+						return nil
+					}
+
+					if info.ModTime().After(now) {
+						changes <- struct{}{}
+						return StopWalk
+					}
+					return nil
+				})
+				now = time.Now()
+				time.Sleep(800 * time.Millisecond)
+			}
+		}
+	}(dir, changes, quit, wg)
+
 	for {
 		select {
 		case <-stop:
+			// tell file walk goroutine to stop execution.
+			quit <- struct{}{}
 			return
-		default:
-		}
-		hasChanged := false
-		filepath.Walk(dir, func(path string, fi os.FileInfo, err error) error {
-			if path == ".git" && fi.IsDir() {
-				log.Println("skipping .git directory")
-				return filepath.SkipDir
-			}
-
-			// ignore hidden files
-			if filepath.Base(path)[0] == '.' {
-				return nil
-			}
-
-			if fi.ModTime().After(startTime) {
-				hasChanged = true
-				startTime = time.Now()
-				return errors.New("reload immediately: stop walking")
-			}
-
-			return nil
-		})
-
-		if hasChanged {
-			err := taskRunner.Run()
-			if err != nil {
+		case <-changes:
+			if err := taskRunner.Run(); err != nil {
 				fmt.Println(err)
 			} else {
-				fmt.Printf("\n============ Rerun ============\n\n")
+				fmt.Println("\n============ Rerun ============\n")
 			}
 		}
-
-		time.Sleep(800 * time.Millisecond)
 	}
+}
+
+// detectSkipFile detect file and directory that want to ignore.
+func detectSkipFile(info os.FileInfo) error {
+	if strings.HasPrefix(info.Name(), ".") {
+		if info.IsDir() {
+			return filepath.SkipDir
+		}
+		return SkipFile
+	}
+	return nil
 }

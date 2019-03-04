@@ -72,8 +72,18 @@ func (r *Runner) Start() error {
 	return r.cmd.Start()
 }
 
+type iRunner interface {
+	Start() error
+	Run() error
+	KillCommand() error
+}
+
 // Run starts the runner
 func (r *Runner) Run() error {
+	return run(r)
+}
+
+func run(r iRunner) error {
 	err := r.KillCommand()
 	if err != nil {
 		return err

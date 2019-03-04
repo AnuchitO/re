@@ -30,9 +30,9 @@ func TestRunnerWalk(t *testing.T) {
 }
 
 type TRunner struct {
-	Runner
-	isKillCalled  bool
-	killReturn    error
+	isKillCalled bool
+	killReturn   error
+
 	isStartCalled bool
 	startReturn   error
 }

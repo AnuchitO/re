@@ -74,7 +74,6 @@ func (r *Runner) Start() error {
 
 type iRunner interface {
 	Start() error
-	Run() error
 	KillCommand() error
 }
 

@@ -15,9 +15,7 @@ func TestRunnerWalk(t *testing.T) {
 
 		mod := task.Walk(now)
 
-		if !mod.Equal(now) {
-			t.Errorf("should return last modify time '%s' but got %s", now, mod)
-		}
+		assert.True(t, mod.Equal(now), "should return last modify time.")
 	})
 
 	t.Run("File chagne", func(t *testing.T) {
@@ -27,9 +25,7 @@ func TestRunnerWalk(t *testing.T) {
 
 		mod := task.Walk(lastMod)
 
-		if !mod.After(lastMod) {
-			t.Errorf("should return lastest modify time '%s' but got %s", lastMod, mod)
-		}
+		assert.True(t, mod.After(lastMod), "should return lastest modify time.")
 	})
 }
 

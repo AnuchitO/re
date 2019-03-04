@@ -2,51 +2,84 @@ package runner
 
 import (
 	"errors"
+	"io"
+	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"syscall"
 	"time"
 )
 
 // Runner is the task runnde
 type Runner struct {
-	prog string
-	args []string
-	cmd  *exec.Cmd
+	prog   string
+	args   []string
+	cmd    *exec.Cmd
+	dir    string
+	stdout io.Writer
+	stderr io.Writer
 }
 
-var taskRunner *Runner
+var task *Runner
 
-// NewRunner creates new task runner if not exists
-func NewRunner(prog string, args ...string) *Runner {
-	if taskRunner == nil {
+// New creates new task runner if not exists
+func New(dir, prog string, args ...string) *Runner {
+	if task == nil {
 		return &Runner{
-			prog: prog,
-			args: args,
+			prog:   prog,
+			args:   args,
+			dir:    dir,
+			stderr: os.Stderr,
+			stdout: os.Stdout,
 		}
 	}
 
-	return taskRunner
+	return task
 }
 
-func newCommandRunner(prog string, args ...string) *exec.Cmd {
-	cmd := exec.Command(prog, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+func (r *Runner) Walk(lastMod time.Time) time.Time {
+	filepath.Walk(r.dir, func(path string, fi os.FileInfo, err error) error {
+		if path == ".git" && fi.IsDir() {
+			log.Println("skipping .git directory")
+			return filepath.SkipDir
+		}
+
+		// ignore hidden files
+		if filepath.Base(path)[0] == '.' {
+			return nil
+		}
+
+		if fi.ModTime().After(lastMod) {
+			lastMod = time.Now()
+			return errors.New("reload immediately: stop walking")
+		}
+
+		return nil
+	})
+
+	return lastMod
+}
+
+func (r *Runner) Start() error {
+	cmd := exec.Command(r.prog, r.args...)
+	cmd.Stdout = r.stdout
+	cmd.Stderr = r.stderr
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	return cmd
+
+	r.cmd = cmd
+
+	return r.cmd.Start()
 }
 
 // Run starts the runner
-func (rn *Runner) Run() error {
-	err := rn.KillCommand()
+func (r *Runner) Run() error {
+	err := r.KillCommand()
 	if err != nil {
 		return err
 	}
 
-	// start the new one
-	rn.cmd = newCommandRunner(rn.prog, rn.args...)
-	err = rn.cmd.Start()
+	err = r.Start()
 	if err != nil {
 		return err
 	}
@@ -54,22 +87,22 @@ func (rn *Runner) Run() error {
 	return nil
 }
 
-func (rn *Runner) KillCommand() error {
+func (r *Runner) KillCommand() error {
 	done := make(chan struct{})
 	go func() {
-		if rn.cmd != nil {
-			rn.cmd.Wait()
+		if r.cmd != nil {
+			r.cmd.Wait()
 		}
 		close(done)
 	}()
 
-	// try soft kill
-	if rn.cmd != nil && rn.cmd.Process != nil {
-		syscall.Kill(-rn.cmd.Process.Pid, syscall.SIGINT)
+	if r.cmd != nil && r.cmd.Process != nil {
+		// try soft kill
+		syscall.Kill(-r.cmd.Process.Pid, syscall.SIGINT)
 		select {
 		case <-time.After(3 * time.Second):
 			// go hard because soft is not always the solution
-			err := syscall.Kill(-rn.cmd.Process.Pid, syscall.SIGKILL)
+			err := syscall.Kill(-r.cmd.Process.Pid, syscall.SIGKILL)
 			if err != nil {
 				return errors.New("Fail killing on going process")
 			}

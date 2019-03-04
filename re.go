@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"sync"
 	"time"
 
@@ -35,62 +34,49 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// doneChannel := make(chan struct{})
 	stop := make(chan struct{})
 	var wg sync.WaitGroup
 	wg.Add(1)
-	taskRunner := runner.NewRunner(prog, params...)
-	go run(dir, taskRunner, stop, &wg)
+	task := runner.New(dir, prog, params...)
+
+	go run(task, stop, &wg)
 
 	sig := make(chan os.Signal)
 	signal.Notify(sig, os.Interrupt)
 
 	<-sig
 	close(stop)
-	err = taskRunner.KillCommand()
+
+	err = task.KillCommand()
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	wg.Wait()
 	fmt.Println("process terminated")
 }
 
-func run(dir string, taskRunner *runner.Runner, stop chan struct{}, wg *sync.WaitGroup) {
+func run(task *runner.Runner, stop chan struct{}, wg *sync.WaitGroup) {
 	defer wg.Done()
 	startTime := time.Now()
-	err := taskRunner.Run()
+
+	err := task.Run()
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	for {
+
 		select {
 		case <-stop:
 			return
 		default:
 		}
-		hasChanged := false
-		filepath.Walk(dir, func(path string, fi os.FileInfo, err error) error {
-			if path == ".git" && fi.IsDir() {
-				log.Println("skipping .git directory")
-				return filepath.SkipDir
-			}
 
-			// ignore hidden files
-			if filepath.Base(path)[0] == '.' {
-				return nil
-			}
-
-			if fi.ModTime().After(startTime) {
-				hasChanged = true
-				startTime = time.Now()
-				return errors.New("reload immediately: stop walking")
-			}
-
-			return nil
-		})
-
-		if hasChanged {
-			err := taskRunner.Run()
+		mod := task.Walk(startTime)
+		if mod.After(startTime) {
+			startTime = mod
+			err := task.Run()
 			if err != nil {
 				fmt.Println(err)
 			} else {

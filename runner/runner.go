@@ -97,26 +97,32 @@ func run(r iRunner) error {
 }
 
 func (r *Runner) KillCommand() error {
+	if r.cmd == nil {
+		return nil
+	}
+
+	if r.cmd.Process == nil {
+		return nil
+	}
+
+	pid := r.cmd.Process.Pid
+
 	done := make(chan struct{})
 	go func() {
-		if r.cmd != nil {
-			r.cmd.Wait()
-		}
+		r.cmd.Wait()
 		close(done)
 	}()
 
-	if r.cmd != nil && r.cmd.Process != nil {
-		// try soft kill
-		syscall.Kill(-r.cmd.Process.Pid, syscall.SIGINT)
-		select {
-		case <-time.After(3 * time.Second):
-			// go hard because soft is not always the solution
-			err := syscall.Kill(-r.cmd.Process.Pid, syscall.SIGKILL)
-			if err != nil {
-				return errors.New("Fail killing on going process")
-			}
-		case <-done:
+	// try soft kill
+	syscall.Kill(-pid, syscall.SIGINT)
+	select {
+	case <-time.After(3 * time.Second):
+		// go hard because soft is not always the solution
+		err := syscall.Kill(-pid, syscall.SIGKILL)
+		if err != nil {
+			return errors.New("Fail killing on going process")
 		}
+	case <-done:
 	}
 
 	return nil

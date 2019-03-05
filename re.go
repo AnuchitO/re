@@ -47,11 +47,6 @@ func main() {
 	<-sig
 	close(stop)
 
-	err = task.KillCommand()
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	wg.Wait()
 	fmt.Println("process terminated")
 }
@@ -69,6 +64,10 @@ func run(task *runner.Runner, stop chan struct{}, wg *sync.WaitGroup) {
 
 		select {
 		case <-stop:
+			err = task.KillCommand()
+			if err != nil {
+				fmt.Println(err)
+			}
 			return
 		default:
 		}

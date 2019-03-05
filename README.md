@@ -3,10 +3,9 @@
 `re` is a program for rerun your command when files change with a focus on simplicity.
 
 - `re` is easy to type.
-- NO dependency use only standard library in go
+- NO dependency use only standard library of go to implement.
 - zero config
--
-- test your test command w
+- test your test command
 
 # Installation
 ```

@@ -2,6 +2,8 @@ package runner
 
 import (
 	"errors"
+	"os"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -82,6 +84,37 @@ func TestRunnerRun(t *testing.T) {
 
 		err := run(tr)
 
+		assert.Error(t, err, "should return an error but it not.")
+	})
+}
+
+func TestRunnerStart(t *testing.T) {
+	t.Run("should return nil when command execute successfully", func(t *testing.T) {
+		task := &Runner{
+			prog:   "echo",
+			args:   []string{"This is working"},
+			dir:    ".",
+			stderr: os.Stderr,
+			stdout: os.Stdout,
+		}
+
+		expectedCmd := exec.Command("echo", "This is working")
+
+		err := task.Start()
+		assert.NoError(t, err, "should run comamnd success but it have error")
+		assert.Equal(t, expectedCmd.Args, task.cmd.Args, "should run the same command with the initiated one but it doesn't")
+	})
+
+	t.Run("should return error when command fail to execute", func(t *testing.T) {
+		task := &Runner{
+			prog:   "fakecommand",
+			args:   []string{"This is working"},
+			dir:    ".",
+			stderr: os.Stderr,
+			stdout: os.Stdout,
+		}
+
+		err := task.Start()
 		assert.Error(t, err, "should return an error but it not.")
 	})
 }

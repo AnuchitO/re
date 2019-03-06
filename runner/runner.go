@@ -3,10 +3,8 @@ package runner
 import (
 	"errors"
 	"io"
-	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"syscall"
 	"time"
 )
@@ -16,7 +14,6 @@ type Runner struct {
 	prog   string
 	args   []string
 	cmd    *exec.Cmd
-	dir    string
 	stdout io.Writer
 	stderr io.Writer
 }
@@ -24,41 +21,17 @@ type Runner struct {
 var task *Runner
 
 // New creates new task runner if not exists
-func New(dir, prog string, args ...string) *Runner {
+func New(prog string, args ...string) *Runner {
 	if task == nil {
 		return &Runner{
 			prog:   prog,
 			args:   args,
-			dir:    dir,
 			stderr: os.Stderr,
 			stdout: os.Stdout,
 		}
 	}
 
 	return task
-}
-
-func (r *Runner) Walk(lastMod time.Time) time.Time {
-	filepath.Walk(r.dir, func(path string, fi os.FileInfo, err error) error {
-		if path == ".git" && fi.IsDir() {
-			log.Println("skipping .git directory")
-			return filepath.SkipDir
-		}
-
-		// ignore hidden files
-		if filepath.Base(path)[0] == '.' {
-			return nil
-		}
-
-		if fi.ModTime().After(lastMod) {
-			lastMod = time.Now()
-			return errors.New("reload immediately: stop walking")
-		}
-
-		return nil
-	})
-
-	return lastMod
 }
 
 func (r *Runner) Start() error {

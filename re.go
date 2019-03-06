@@ -37,9 +37,9 @@ func main() {
 	stop := make(chan struct{})
 	var wg sync.WaitGroup
 	wg.Add(1)
-	task := runner.New(dir, prog, params...)
+	task := runner.New(prog, params...)
 
-	go run(task, stop, &wg)
+	go run(dir, task, stop, &wg)
 
 	sig := make(chan os.Signal)
 	signal.Notify(sig, os.Interrupt)
@@ -51,9 +51,9 @@ func main() {
 	fmt.Println("process terminated")
 }
 
-func run(task *runner.Runner, stop chan struct{}, wg *sync.WaitGroup) {
+func run(dir string, task *runner.Runner, stop chan struct{}, wg *sync.WaitGroup) {
 	defer wg.Done()
-	startTime := time.Now()
+	lastMod := time.Now()
 
 	err := task.Run()
 	if err != nil {
@@ -72,9 +72,10 @@ func run(task *runner.Runner, stop chan struct{}, wg *sync.WaitGroup) {
 		default:
 		}
 
-		mod := task.Walk(startTime)
-		if mod.After(startTime) {
-			startTime = mod
+		mod := runner.Traverse(dir, lastMod)
+
+		if mod.After(lastMod) {
+			lastMod = mod
 			err := task.Run()
 			if err != nil {
 				fmt.Println(err)

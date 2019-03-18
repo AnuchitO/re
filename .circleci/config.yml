@@ -5,7 +5,7 @@ jobs:
       # specify the version
       - image: circleci/golang:1.12.1
 
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/AnuchitO/re
     steps:
       - checkout
 

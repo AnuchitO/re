@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/AnuchitO/re.svg?style=svg)](https://circleci.com/gh/AnuchitO/re)
+
 # re
 
 `re` is a program for rerun your command when files change with a focus on simplicity.

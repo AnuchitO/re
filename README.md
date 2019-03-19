@@ -7,7 +7,6 @@
 - `re` is easy to type.
 - NO dependency use only standard library of go to implement.
 - zero config
-- test your test command
 
 # Installation
 ```
@@ -40,6 +39,7 @@ re go test -v .
 * [ ] configurable option
 * [ ] skip file in .gitignore
 * [ ] should clear screen before rerun command
+* [ ] Cross platform
 
 ## Contribute
 - please send a PR.

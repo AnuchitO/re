@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-func kill(cmd *exec.Cmd) error {
-	kill := exec.Command("TASKKILL", "/T", "/F", "/PID", strconv.Itoa(cmd.Process.Pid))
+func kill(pid int) error {
+	kill := exec.Command("TASKKILL", "/T", "/F", "/PID", strconv.Itoa(pid))
 	kill.Stderr = os.Stderr
 	kill.Stdout = os.Stdout
 	return kill.Run()
@@ -36,13 +36,15 @@ func (r *Runner) KillCommand() error {
 		return nil
 	}
 
+	pid := r.cmd.Process.Pid
+
 	done := make(chan struct{})
 	go func() {
 		r.cmd.Wait()
 		close(done)
 	}()
 
-	if err := r.cmd.Process.Kill(); err != nil {
+	if err := kill(pid); err != nil {
 		log.Println("kill error: ", err)
 		return err
 	}

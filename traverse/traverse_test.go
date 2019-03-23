@@ -1,6 +1,8 @@
 package traverse
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -25,5 +27,25 @@ func TestRunnerWalk(t *testing.T) {
 		mod := IsModify(dir, lastMod)
 
 		assert.True(t, mod, "should return lastest modify time.")
+	})
+}
+
+type info struct {
+	os.FileInfo
+}
+
+func (i info) IsDir() bool {
+	return true
+}
+
+func TestWalkFunc(t *testing.T) {
+	t.Run("should skip .git directory", func(t *testing.T) {
+		walk := walkFunc(time.Now())
+
+		fi := info{}
+
+		err := walk("/user/project/.git", fi, nil)
+
+		assert.Equal(t, filepath.SkipDir, err, "should Skip directory .git")
 	})
 }

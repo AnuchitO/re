@@ -11,7 +11,7 @@ var hasModify = errors.New("rerun immediately: stop walk because has to modify")
 
 func walkFunc(lastMod time.Time) filepath.WalkFunc {
 	return func(path string, fi os.FileInfo, err error) error {
-		if path == ".git" && fi.IsDir() {
+		if filepath.Base(path) == ".git" && fi.IsDir() {
 			return filepath.SkipDir
 		}
 

@@ -46,6 +46,6 @@ func TestWalkFunc(t *testing.T) {
 
 		err := walk("/user/project/.git", fi, nil)
 
-		assert.Equal(t, filepath.SkipDir, err, "should Skip directory .git")
+		assert.Equal(t, filepath.SkipDir, err, "should Skip directory .git but it not.")
 	})
 }

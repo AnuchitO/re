@@ -1,4 +1,4 @@
-package runner
+package traverse
 
 import (
 	"testing"
@@ -12,9 +12,9 @@ func TestRunnerWalk(t *testing.T) {
 		now := time.Now()
 		dir := "."
 
-		mod := Traverse(dir, now)
+		mod := IsModify(dir, now)
 
-		assert.True(t, mod.Equal(now), "should return last modify time.")
+		assert.False(t, mod, "should return last modify time.")
 	})
 
 	t.Run("File chagne", func(t *testing.T) {
@@ -22,8 +22,8 @@ func TestRunnerWalk(t *testing.T) {
 		lastMod, _ := time.Parse(form, "Sat Feb 08 07:00:00 1992")
 		dir := "."
 
-		mod := Traverse(dir, lastMod)
+		mod := IsModify(dir, lastMod)
 
-		assert.True(t, mod.After(lastMod), "should return lastest modify time.")
+		assert.True(t, mod, "should return lastest modify time.")
 	})
 }

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/AnuchitO/re/runner"
+	"github.com/AnuchitO/re/traverse"
 )
 
 func splitCommand(args []string) (prog string, params []string, err error) {
@@ -72,10 +73,10 @@ func run(dir string, task *runner.Runner, stop chan struct{}, wg *sync.WaitGroup
 		default:
 		}
 
-		mod := runner.Traverse(dir, lastMod)
+		mod := traverse.IsModify(dir, lastMod)
 
-		if mod.After(lastMod) {
-			lastMod = mod
+		if mod {
+			lastMod = time.Now()
 			err := task.Run()
 			if err != nil {
 				fmt.Println(err)

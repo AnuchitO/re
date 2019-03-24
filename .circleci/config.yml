@@ -15,4 +15,4 @@ jobs:
           command: |
             go get github.com/mattn/goveralls
             go test -v -covermode=count -coverprofile=coverage.out
-            $GOPATH/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+            goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN

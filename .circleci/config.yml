@@ -14,5 +14,5 @@ jobs:
       - run:
           command: |
             go get github.com/mattn/goveralls
-            go test -v -covermode=count -coverprofile=coverage.out -v ./...
+            go test -covermode=count -coverprofile=coverage.out -v ./...
             goveralls -coverprofile=coverage.out -service=circleci -repotoken $COVERALLS_TOKEN

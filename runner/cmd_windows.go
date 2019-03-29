@@ -10,7 +10,31 @@ import (
 	"time"
 )
 
+type taskListOutput struct {
+	out string
+}
+
+func (k *taskListOutput) Write(p []byte) (n int, err error) {
+	k.out = string(p)
+	return len(p), nil
+}
+
+
 func kill(pid int) error {
+	o := &taskListOutput{}
+	tasklist := exec.Command("TASKLIST", "/fi", "pid eq "+strconv.Itoa(pid))
+	tasklist.Stderr = os.Stderr
+	tasklist.Stdout = o
+	err := tasklist.Run() 
+	if err != nil {
+		log.Println("tasklist err", err)
+		return err
+	}
+	
+	if o.out == "INFO: No tasks are running which match the specified criteria.\r\n" {
+		return nil
+	}
+
 	kill := exec.Command("TASKKILL", "/T", "/F", "/PID", strconv.Itoa(pid))
 	kill.Stderr = os.Stderr
 	kill.Stdout = os.Stdout

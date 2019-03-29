@@ -69,13 +69,13 @@ func TestRunnerRun(t *testing.T) {
 func TestRunnerStart(t *testing.T) {
 	t.Run("should return nil when command execute successfully", func(t *testing.T) {
 		task := &Runner{
-			prog:   "echo",
-			args:   []string{"This is working"},
+			prog:   "go",
+			args:   []string{"version"},
 			stderr: os.Stderr,
 			stdout: os.Stdout,
 		}
 
-		expectedCmd := exec.Command("echo", "This is working")
+		expectedCmd := exec.Command("go", "version")
 
 		err := task.Start()
 		assert.NoError(t, err, "should run comamnd success but it have error")
@@ -85,7 +85,7 @@ func TestRunnerStart(t *testing.T) {
 	t.Run("should return error when command fail to execute", func(t *testing.T) {
 		task := &Runner{
 			prog:   "fakecommand",
-			args:   []string{"This is working"},
+			args:   []string{"This is not working"},
 			stderr: os.Stderr,
 			stdout: os.Stdout,
 		}

@@ -104,3 +104,13 @@ func TestNewRunner(t *testing.T) {
 		assert.Equal(t, []string{"version"}, r.args, "should be set args correctly.")
 	})
 }
+
+func TestRun(t *testing.T) {
+	t.Run("should not be error when call run", func(t *testing.T) {
+		r := New("go", "version")
+
+		err := r.Run()
+
+		assert.Nil(t, err, "should not be error.")
+	})
+}

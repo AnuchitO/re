@@ -15,20 +15,14 @@ type Runner struct {
 	stderr io.Writer
 }
 
-var task *Runner
-
 // New creates new task runner if not exists
 func New(prog string, args ...string) *Runner {
-	if task == nil {
-		return &Runner{
-			prog:   prog,
-			args:   args,
-			stderr: os.Stderr,
-			stdout: os.Stdout,
-		}
+	return &Runner{
+		prog:   prog,
+		args:   args,
+		stderr: os.Stderr,
+		stdout: os.Stdout,
 	}
-
-	return task
 }
 
 type iRunner interface {

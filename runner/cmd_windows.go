@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -20,7 +21,7 @@ func (k *taskListOutput) Write(p []byte) (n int, err error) {
 }
 
 func isNoTaskRunning(output string) bool {
-	if output == "INFO: No tasks are running which match the specified criteria.\r\n" {
+	if strings.Contains(output, "No tasks") {
 		return true
 	}
 	return false

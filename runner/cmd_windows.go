@@ -19,19 +19,25 @@ func (k *taskListOutput) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
+func isNoTaskRunning(output string) bool {
+	if output == "INFO: No tasks are running which match the specified criteria.\r\n" {
+		return true
+	}
+	return false
+}
 
 func kill(pid int) error {
 	o := &taskListOutput{}
 	tasklist := exec.Command("TASKLIST", "/fi", "pid eq "+strconv.Itoa(pid))
 	tasklist.Stderr = os.Stderr
 	tasklist.Stdout = o
-	err := tasklist.Run() 
+	err := tasklist.Run()
 	if err != nil {
 		log.Println("tasklist err", err)
 		return err
 	}
-	
-	if o.out == "INFO: No tasks are running which match the specified criteria.\r\n" {
+
+	if isNoTaskRunning(o.out) {
 		return nil
 	}
 

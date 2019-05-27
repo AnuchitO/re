@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var hasModify = errors.New("rerun immediately: stop walk because has to modify")
+var errHasModify = errors.New("rerun immediately: stop walk because has to modify")
 
 func walkFunc(lastMod time.Time) filepath.WalkFunc {
 	return func(path string, fi os.FileInfo, err error) error {
@@ -21,7 +21,7 @@ func walkFunc(lastMod time.Time) filepath.WalkFunc {
 		}
 
 		if fi.ModTime().After(lastMod) {
-			return hasModify
+			return errHasModify
 		}
 
 		return nil
@@ -31,9 +31,5 @@ func walkFunc(lastMod time.Time) filepath.WalkFunc {
 // IsModify check if has file an update or not
 func IsModify(dir string, lastMod time.Time) bool {
 	err := filepath.Walk(dir, walkFunc(lastMod))
-	if err == hasModify {
-		return true
-	}
-
-	return false
+	return err == errHasModify
 }

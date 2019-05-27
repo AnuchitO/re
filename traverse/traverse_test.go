@@ -19,7 +19,7 @@ func TestRunnerWalk(t *testing.T) {
 		assert.False(t, mod, "should return last modify time.")
 	})
 
-	t.Run("File chagne", func(t *testing.T) {
+	t.Run("should return trure when file has change", func(t *testing.T) {
 		form := "Mon Jan _2 15:04:05 2006"
 		lastMod, _ := time.Parse(form, "Sat Feb 08 07:00:00 1992")
 		dir := "."

@@ -20,6 +20,7 @@ re is easy to use just type `re` and follow with your command.
 ```
 re [command]
 ```
+note: make sure you set $GOPATH/bin into your class path. (.zshrc, .bashrc, etc.)
 
 # examples
 ## rerun command e.g. `go test` - watching file to re run your command again whenever file changed.

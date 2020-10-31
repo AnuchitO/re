@@ -10,6 +10,6 @@ func main() {
 		w.Write([]byte(`{"name": "anuchito zz"}`))
 	})
 
-	log.Println("starting zz ...")
+	log.Println("starting Port: 1234 ...")
 	log.Fatal(http.ListenAndServe(":1234", nil))
 }

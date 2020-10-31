@@ -81,7 +81,7 @@ func run(dir string, task *runner.Runner, stop chan struct{}, wg *sync.WaitGroup
 			if err != nil {
 				fmt.Println(err)
 			} else {
-				fmt.Printf("\n============ Rerun ============\n\n")
+				fmt.Printf("\n----------------- Rerun ------------------\n\n")
 			}
 		}
 

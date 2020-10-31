@@ -3,3 +3,6 @@ re
 
 # IDEA
 .idea/
+
+# Mac os
+.DS_Store

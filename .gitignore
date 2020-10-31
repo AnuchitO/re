@@ -11,3 +11,7 @@ re
 # local env files
 .env.local
 .env.*.local
+
+# Sublime Text
+# ------------
+*.sublime-*

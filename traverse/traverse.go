@@ -15,8 +15,7 @@ func walkFunc(lastMod time.Time) filepath.WalkFunc {
 			return filepath.SkipDir
 		}
 
-		// ignore hidden files
-		if filepath.Base(path)[0] == '.' {
+		if isHiddenFile(path) {
 			return nil
 		}
 
@@ -26,6 +25,10 @@ func walkFunc(lastMod time.Time) filepath.WalkFunc {
 
 		return nil
 	}
+}
+
+func isHiddenFile(path string) bool {
+	return filepath.Base(path)[0] == '.'
 }
 
 // IsModify check if has file an update or not

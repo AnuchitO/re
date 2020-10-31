@@ -3,6 +3,7 @@ re
 
 # IDEA
 .idea/
+.vscode
 
 # Mac os
 .DS_Store

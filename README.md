@@ -1,6 +1,3 @@
-[![CircleCI](https://circleci.com/gh/AnuchitO/re.svg?style=svg)](https://circleci.com/gh/AnuchitO/re)
-
-[![Coverage Status](https://coveralls.io/repos/github/AnuchitO/re/badge.svg?branch=master&service=github)](https://coveralls.io/github/AnuchitO/re?branch=master&service=github)
 
 # re
 

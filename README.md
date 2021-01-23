@@ -5,7 +5,7 @@
 
 - `re` is easy to type.
 - NO dependency use only standard library of go to implement.
-- zero config
+- zero config.
 
 # Installation
 ```

@@ -9,7 +9,7 @@
 
 # Installation
 ```
-go get github.com/AnuchitO/re
+go install github.com/AnuchitO/re@latest
 ```
 
 # Usage

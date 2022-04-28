@@ -8,6 +8,12 @@
 - zero config.
 
 # Installation
+go version =>1.11
+```
+go install github.com/AnuchitO/re
+```
+
+go version <1.11
 ```
 go get github.com/AnuchitO/re
 ```

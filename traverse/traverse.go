@@ -3,6 +3,7 @@ package traverse
 import (
 	"bufio"
 	"errors"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,20 +13,21 @@ import (
 
 var errHasModify = errors.New("rerun immediately: stop walk because has to modify")
 
-func walkFunc(root string, lastMod time.Time, ignorePatterns []string) filepath.WalkFunc {
-	return func(path string, fi os.FileInfo, err error) error {
+func walkFunc(root string, lastMod time.Time, ignorePatterns []string) fs.WalkDirFunc {
+	return func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return nil
 		}
 
 		base := filepath.Base(path)
 
-		if base == ".git" && fi.IsDir() {
+		// All checks below use d.IsDir() / d.Type() — no syscall needed.
+		if base == ".git" && d.IsDir() {
 			return filepath.SkipDir
 		}
 
 		if isHiddenFile(base) {
-			if fi.IsDir() {
+			if d.IsDir() {
 				return filepath.SkipDir
 			}
 			return nil
@@ -39,7 +41,7 @@ func walkFunc(root string, lastMod time.Time, ignorePatterns []string) filepath.
 			for _, pattern := range ignorePatterns {
 				matched, _ := filepath.Match(pattern, base)
 				if matched {
-					if fi.IsDir() {
+					if d.IsDir() {
 						return filepath.SkipDir
 					}
 					return nil
@@ -47,6 +49,11 @@ func walkFunc(root string, lastMod time.Time, ignorePatterns []string) filepath.
 			}
 		}
 
+		// Only call Info (stat syscall) after all cheap checks pass.
+		fi, err := d.Info()
+		if err != nil {
+			return nil
+		}
 		if fi.ModTime().After(lastMod) {
 			return errHasModify
 		}
@@ -86,11 +93,16 @@ func readGitignore(dir string) []string {
 	return patterns
 }
 
+// walk is the inner walk used by IsModify, exposed for benchmarking.
+func walk(dir string, lastMod time.Time, patterns []string) error {
+	return filepath.WalkDir(dir, walkFunc(dir, lastMod, patterns))
+}
+
 // IsModify checks if any file in dir has been modified after lastMod.
 // It automatically reads .gitignore patterns and also accepts additional
 // ignore patterns via extraIgnore (supports filepath.Match glob syntax).
 func IsModify(dir string, lastMod time.Time, extraIgnore ...string) bool {
 	patterns := append(readGitignore(dir), extraIgnore...)
-	err := filepath.Walk(dir, walkFunc(dir, lastMod, patterns))
+	err := walk(dir, lastMod, patterns)
 	return err == errHasModify
 }

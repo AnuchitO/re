@@ -1,7 +1,7 @@
 package traverse
 
 import (
-	"os"
+	"io/fs"
 	"path/filepath"
 	"testing"
 	"time"
@@ -30,12 +30,23 @@ func TestRunnerWalk(t *testing.T) {
 	})
 }
 
-type info struct {
-	os.FileInfo
-}
+// info implements fs.DirEntry for testing.
+type info struct{}
 
-func (i info) IsDir() bool  { return true }
-func (i info) ModTime() time.Time { return time.Time{} } // zero — never "after" a recent lastMod
+func (i info) Name() string               { return "" }
+func (i info) IsDir() bool                { return true }
+func (i info) Type() fs.FileMode          { return fs.ModeDir }
+func (i info) Info() (fs.FileInfo, error) { return fakeFileInfo{}, nil }
+
+// fakeFileInfo implements fs.FileInfo with zero ModTime.
+type fakeFileInfo struct{}
+
+func (fakeFileInfo) Name() string      { return "" }
+func (fakeFileInfo) Size() int64       { return 0 }
+func (fakeFileInfo) Mode() fs.FileMode { return fs.ModeDir }
+func (fakeFileInfo) ModTime() time.Time { return time.Time{} } // zero — never "after" a recent lastMod
+func (fakeFileInfo) IsDir() bool       { return true }
+func (fakeFileInfo) Sys() any          { return nil }
 
 func TestWalkFunc(t *testing.T) {
 	t.Run("should skip .git directory", func(t *testing.T) {

@@ -1,7 +1,7 @@
 BINARY  := re
 CMD     ?= go test ./...
 
-.PHONY: build test coverage vet run install clean help
+.PHONY: build test coverage vet lint lint-install run install clean help
 
 ## build: compile the binary to ./re
 build:
@@ -19,6 +19,14 @@ coverage:
 ## vet: run go vet
 vet:
 	go vet ./...
+
+## lint: run golangci-lint
+lint:
+	golangci-lint run ./...
+
+## lint-install: install golangci-lint (requires Go)
+lint-install:
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 
 ## run: watch files and rerun CMD (default: go test ./...)
 ##      usage: make run CMD="go test -v ."

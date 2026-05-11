@@ -39,7 +39,7 @@ func TestSplitArguments(t *testing.T) {
 
 		prog, _, _ := splitCommand(args)
 
-		if "go" != prog {
+		if prog != "go" {
 			t.Errorf("expect prog is %q but got %q", "go", prog)
 		}
 	})

@@ -33,18 +33,18 @@ func (r *Runner) KillCommand() error {
 	pid := r.cmd.Process.Pid
 	done := make(chan struct{})
 	go func() {
-		r.cmd.Wait()
+		_ = r.cmd.Wait()
 		close(done)
 	}()
 
 	// try soft kill
-	syscall.Kill(-pid, syscall.SIGINT)
+	_ = syscall.Kill(-pid, syscall.SIGINT)
 	select {
 	case <-time.After(3 * time.Second):
 		// go hard because soft is not always the solution
 		err := syscall.Kill(-pid, syscall.SIGKILL)
 		if err != nil {
-			return errors.New("Fail killing on going process")
+			return errors.New("fail killing ongoing process")
 		}
 	case <-done:
 	}

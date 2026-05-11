@@ -1,11 +1,13 @@
 BINARY  := re
 CMD     ?= go test ./...
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+LDFLAGS := -ldflags "-X main.version=$(VERSION)"
 
 .PHONY: build test coverage vet lint lint-install run install clean help
 
 ## build: compile the binary to ./re
 build:
-	go build -o $(BINARY) .
+	go build $(LDFLAGS) -o $(BINARY) .
 
 ## test: run all tests
 test:
@@ -35,7 +37,7 @@ run: build
 
 ## install: install the binary to $GOPATH/bin
 install:
-	go install .
+	go install $(LDFLAGS) .
 
 ## clean: remove build artifacts
 clean:

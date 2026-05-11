@@ -25,11 +25,19 @@ func splitCommand(args []string) (prog string, params []string, err error) {
 	return
 }
 
+var version = "dev"
+
 func main() {
 	interval := flag.Duration("interval", 800*time.Millisecond, "polling interval for file changes")
 	ignore := flag.String("ignore", "", "comma-separated file patterns to ignore (e.g. '*.log,vendor')")
 	clear := flag.Bool("clear", false, "clear the screen before each rerun")
+	ver := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
+
+	if *ver {
+		fmt.Println(version)
+		return
+	}
 
 	prog, params, err := splitCommand(flag.Args())
 	if err != nil {

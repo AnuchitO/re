@@ -40,11 +40,11 @@ func (i info) IsDir() bool {
 
 func TestWalkFunc(t *testing.T) {
 	t.Run("should skip .git directory", func(t *testing.T) {
-		walk := walkFunc(time.Now())
+		walk := walkFunc(time.Now(), nil)
 
 		fi := info{}
 
-		err := walk("/user/project/.git", fi, nil)
+		err := walk("/user/project/.git", fi, nil) //nolint:errcheck
 
 		assert.Equal(t, filepath.SkipDir, err, "should Skip directory .git but it not.")
 	})

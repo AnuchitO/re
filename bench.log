@@ -55,3 +55,26 @@ ok  	github.com/AnuchitO/re/traverse	22.170s
   │ WalkFunc_NoChange │ ~11,800 ns/op, 2688 B, 33 allocs │ ~528 ns/op, 227 B, 3 allocs     │ ~22x faster, 91% fewer allocs │
   └───────────────────┴──────────────────────────────────┴─────────────────────────────────┴───────────────────────────────┘
 
+
+=== AFTER: cached patterns (no gitignore I/O per poll) ===
+goos: darwin
+goarch: arm64
+pkg: github.com/AnuchitO/re/traverse
+cpu: Apple M4 Max
+BenchmarkIsModify_NoChange-16    	 2297542	       508.6 ns/op	     227 B/op	       3 allocs/op
+BenchmarkIsModify_NoChange-16    	 2346267	       519.4 ns/op	     227 B/op	       3 allocs/op
+BenchmarkIsModify_NoChange-16    	 2378766	       509.3 ns/op	     227 B/op	       3 allocs/op
+BenchmarkIsModify_NoChange-16    	 2345074	       511.8 ns/op	     227 B/op	       3 allocs/op
+BenchmarkIsModify_NoChange-16    	 2339086	       515.1 ns/op	     227 B/op	       3 allocs/op
+BenchmarkIsModify_Change-16      	 2370446	       510.5 ns/op	     227 B/op	       3 allocs/op
+BenchmarkIsModify_Change-16      	 2339112	       516.5 ns/op	     227 B/op	       3 allocs/op
+BenchmarkIsModify_Change-16      	 2312199	       518.0 ns/op	     227 B/op	       3 allocs/op
+BenchmarkIsModify_Change-16      	 2295043	       513.7 ns/op	     227 B/op	       3 allocs/op
+BenchmarkIsModify_Change-16      	 2322469	       519.3 ns/op	     227 B/op	       3 allocs/op
+BenchmarkWalkFunc_NoChange-16    	 2297265	       519.6 ns/op	     227 B/op	       3 allocs/op
+BenchmarkWalkFunc_NoChange-16    	 2302971	       517.4 ns/op	     227 B/op	       3 allocs/op
+BenchmarkWalkFunc_NoChange-16    	 2315607	       521.5 ns/op	     227 B/op	       3 allocs/op
+BenchmarkWalkFunc_NoChange-16    	 2302305	       522.5 ns/op	     227 B/op	       3 allocs/op
+BenchmarkWalkFunc_NoChange-16    	 2282259	       528.0 ns/op	     227 B/op	       3 allocs/op
+PASS
+ok  	github.com/AnuchitO/re/traverse	26.370s

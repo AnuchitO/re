@@ -2,9 +2,9 @@
 
 Reruns a command automatically whenever files change. Built for tight feedback loops like TDD.
 
-- No configuration required
-- No runtime dependencies — standard library only
-- Short to type: just `re`
+```
+re go test -v ./...
+```
 
 ## Installation
 
@@ -24,15 +24,15 @@ re [flags] <command> [args...]
 
 Run tests on every file change:
 ```sh
-re go test -v .
+re go test -v ./...
 ```
 
-Restart an API server on every file change:
+Restart an API server on every change:
 ```sh
 re go run main.go
 ```
 
-Clear the screen before each rerun, poll every 300ms, and ignore log files:
+Clear the screen, poll every 300ms, ignore log files:
 ```sh
 re -clear -interval 300ms -ignore "*.log,vendor" go test ./...
 ```
@@ -41,20 +41,27 @@ re -clear -interval 300ms -ignore "*.log,vendor" go test ./...
 
 | Flag | Default | Description |
 |---|---|---|
-| `-interval` | `800ms` | How often to check for file changes |
+| `-interval` | `800ms` | How often to poll for file changes |
 | `-ignore` | — | Comma-separated glob patterns to skip (e.g. `*.log,vendor`) |
 | `-clear` | `false` | Clear the terminal before each rerun |
+| `-version` | — | Print version and exit |
 
 > `.gitignore` patterns are respected automatically — no extra configuration needed.
+
+## Design
+
+Key decisions — polling vs OS events, WalkDir, gitignore caching, process group killing, terminal detection — are documented with full context and reasoning in [ADR.md](ADR.md).
 
 ## Features
 
 - [x] Rerun any command on file change
-- [x] Interrupt running process and restart cleanly
-- [x] Watch nested directories and single files
-- [x] Respect `.gitignore`
-- [x] Clear screen before rerun
-- [x] Configurable via flags
+- [x] Kill entire process group on rerun (not just the top-level process)
+- [x] Respect `.gitignore` with cached pattern matching
+- [x] Watch nested directories
+- [x] Clear screen before rerun (`-clear`)
+- [x] Configurable poll interval and ignore patterns
+- [x] Terminal-aware output with plain ASCII fallback
+- [x] Version flag (`-version`)
 - [ ] Full cross-platform CI coverage
 
 ## Contributing

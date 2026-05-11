@@ -67,7 +67,7 @@ func TestRerun(t *testing.T) {
 			close(stop)
 		})
 
-		run(".", task, stop, &wg, 800*time.Millisecond, nil)
+		run(".", task, stop, &wg, 800*time.Millisecond, nil, false)
 
 		wg.Wait()
 

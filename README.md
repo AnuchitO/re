@@ -42,10 +42,22 @@ re go test -v .
 * [x] Watching nested files
 * [x] Watching single files
 * [x] reload app when file change
-* [ ] configurable option
-* [ ] skip file in .gitignore
-* [ ] should clear screen before rerun command
+* [x] configurable option
+* [x] skip file in .gitignore
+* [x] should clear screen before rerun command
 * [ ] Cross platform
+
+## Flags
+| Flag | Default | Description |
+|---|---|---|
+| `-interval` | `800ms` | Polling interval for file changes |
+| `-ignore` | `""` | Comma-separated glob patterns to skip (e.g. `*.log,vendor`) |
+| `-clear` | `false` | Clear the screen before each rerun |
+
+```
+re -clear -interval 500ms go test -v .
+re -ignore "*.log,vendor" go test ./...
+```
 
 ## Contribute
 - please send a PR.

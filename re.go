@@ -28,6 +28,7 @@ func splitCommand(args []string) (prog string, params []string, err error) {
 func main() {
 	interval := flag.Duration("interval", 800*time.Millisecond, "polling interval for file changes")
 	ignore := flag.String("ignore", "", "comma-separated file patterns to ignore (e.g. '*.log,vendor')")
+	clear := flag.Bool("clear", false, "clear the screen before each rerun")
 	flag.Parse()
 
 	prog, params, err := splitCommand(flag.Args())
@@ -50,7 +51,7 @@ func main() {
 	wg.Add(1)
 	task := runner.New(prog, params...)
 
-	go run(dir, task, stop, &wg, *interval, ignorePatterns)
+	go run(dir, task, stop, &wg, *interval, ignorePatterns, *clear)
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)

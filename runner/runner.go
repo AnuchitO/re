@@ -4,25 +4,28 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"time"
 )
 
 // Runner is the task runnde
 type Runner struct {
-	prog   string
-	args   []string
-	cmd    *exec.Cmd
-	done   chan struct{} // closed when cmd exits naturally or is killed
-	stdout io.Writer
-	stderr io.Writer
+	prog        string
+	args        []string
+	cmd         *exec.Cmd
+	done        chan struct{} // closed when cmd exits naturally or is killed
+	stdout      io.Writer
+	stderr      io.Writer
+	killTimeout time.Duration
 }
 
 // New creates new task runner if not exists
 func New(prog string, args ...string) *Runner {
 	return &Runner{
-		prog:   prog,
-		args:   args,
-		stderr: os.Stderr,
-		stdout: os.Stdout,
+		prog:        prog,
+		args:        args,
+		stderr:      os.Stderr,
+		stdout:      os.Stdout,
+		killTimeout: 3 * time.Second,
 	}
 }
 

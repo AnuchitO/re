@@ -27,6 +27,8 @@ func splitCommand(args []string) (prog string, params []string, err error) {
 
 var version = "dev"
 
+var getwd = os.Getwd
+
 func main() {
 	interval := flag.Duration("interval", 800*time.Millisecond, "polling interval for file changes")
 	ignore := flag.String("ignore", "", "comma-separated file patterns to ignore (e.g. '*.log,vendor')")
@@ -44,7 +46,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dir, err := os.Getwd()
+	dir, err := getwd()
 	if err != nil {
 		log.Fatal(err)
 	}

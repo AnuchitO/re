@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var syscallKill = func(pid int, sig syscall.Signal) error { return syscall.Kill(pid, sig) }
+
 func (r *Runner) Start() error {
 	cmd := exec.Command(r.prog, r.args...)
 	cmd.Stdout = r.stdout
@@ -54,13 +56,13 @@ func (r *Runner) KillCommand() error {
 	pid := r.cmd.Process.Pid
 
 	// try soft kill; log but continue — the hard kill handles the timeout case
-	if err := syscall.Kill(-pid, syscall.SIGINT); err != nil {
+	if err := syscallKill(-pid, syscall.SIGINT); err != nil {
 		log.Printf("SIGINT to process group %d: %v", pid, err)
 	}
 	select {
-	case <-time.After(3 * time.Second):
+	case <-time.After(r.killTimeout):
 		// go hard because soft is not always the solution
-		if err := syscall.Kill(-pid, syscall.SIGKILL); err != nil {
+		if err := syscallKill(-pid, syscall.SIGKILL); err != nil {
 			return errors.New("fail killing ongoing process")
 		}
 	case <-r.done:

@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AnuchitO/re/runner"
 	"github.com/AnuchitO/re/traverse"
 )
 
@@ -87,7 +86,16 @@ func (c *patternCache) get(dir string, extra []string) []string {
 	return c.patterns
 }
 
-func run(dir string, task *runner.Runner, stop chan struct{}, wg *sync.WaitGroup, interval time.Duration, ignorePatterns []string, clear bool) {
+// taskRunner is the minimal interface needed from *runner.Runner.
+type taskRunner interface {
+	SetStdout(w io.Writer)
+	SetStderr(w io.Writer)
+	Run() error
+	Done() <-chan struct{}
+	KillCommand() error
+}
+
+func run(dir string, task taskRunner, stop chan struct{}, wg *sync.WaitGroup, interval time.Duration, ignorePatterns []string, clear bool) {
 	defer wg.Done()
 	lastMod := time.Now()
 

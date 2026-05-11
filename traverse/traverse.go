@@ -3,6 +3,7 @@ package traverse
 import (
 	"bufio"
 	"errors"
+	"io"
 	"io/fs"
 	"log"
 	"os"
@@ -12,6 +13,8 @@ import (
 )
 
 var errHasModify = errors.New("rerun immediately: stop walk because has to modify")
+
+var openFile = func(name string) (io.ReadCloser, error) { return os.Open(name) }
 
 func walkFunc(root string, lastMod time.Time, ignorePatterns []string) fs.WalkDirFunc {
 	return func(path string, d fs.DirEntry, err error) error {
@@ -70,7 +73,7 @@ func isHiddenFile(name string) bool {
 // Lines starting with # and empty lines are ignored.
 // Note: only simple glob patterns (e.g. *.log, vendor) are supported.
 func ReadGitignore(dir string) []string {
-	f, err := os.Open(filepath.Join(dir, ".gitignore"))
+	f, err := openFile(filepath.Join(dir, ".gitignore"))
 	if err != nil {
 		return nil
 	}

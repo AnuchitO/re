@@ -6,9 +6,9 @@ import (
 	"golang.org/x/term"
 )
 
-// isFancyTerminal reports whether stdout supports ANSI escape codes and Unicode.
+// defaultIsFancyTerminal reports whether stdout supports ANSI escape codes and Unicode.
 // Returns false when output is piped/redirected, $TERM=dumb, or $NO_COLOR is set.
-func isFancyTerminal() bool {
+func defaultIsFancyTerminal() bool {
 	if os.Getenv("NO_COLOR") != "" {
 		return false
 	}
@@ -17,3 +17,5 @@ func isFancyTerminal() bool {
 	}
 	return term.IsTerminal(int(os.Stdout.Fd()))
 }
+
+var isFancyTerminal = defaultIsFancyTerminal

@@ -12,7 +12,7 @@ import (
 
 var errHasModify = errors.New("rerun immediately: stop walk because has to modify")
 
-func walkFunc(lastMod time.Time, ignorePatterns []string) filepath.WalkFunc {
+func walkFunc(root string, lastMod time.Time, ignorePatterns []string) filepath.WalkFunc {
 	return func(path string, fi os.FileInfo, err error) error {
 		if err != nil {
 			return nil
@@ -31,13 +31,19 @@ func walkFunc(lastMod time.Time, ignorePatterns []string) filepath.WalkFunc {
 			return nil
 		}
 
-		for _, pattern := range ignorePatterns {
-			matched, _ := filepath.Match(pattern, base)
-			if matched {
-				if fi.IsDir() {
-					return filepath.SkipDir
+		// Never apply ignore patterns to the root itself — its base name may
+		// coincidentally match a pattern (e.g. a project named "re" and a
+		// .gitignore entry "re" for the binary), which would SkipDir the
+		// entire walk and make IsModify always return false.
+		if path != root {
+			for _, pattern := range ignorePatterns {
+				matched, _ := filepath.Match(pattern, base)
+				if matched {
+					if fi.IsDir() {
+						return filepath.SkipDir
+					}
+					return nil
 				}
-				return nil
 			}
 		}
 
@@ -85,6 +91,6 @@ func readGitignore(dir string) []string {
 // ignore patterns via extraIgnore (supports filepath.Match glob syntax).
 func IsModify(dir string, lastMod time.Time, extraIgnore ...string) bool {
 	patterns := append(readGitignore(dir), extraIgnore...)
-	err := filepath.Walk(dir, walkFunc(lastMod, patterns))
+	err := filepath.Walk(dir, walkFunc(dir, lastMod, patterns))
 	return err == errHasModify
 }

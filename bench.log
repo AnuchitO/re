@@ -1,0 +1,57 @@
+=== BEFORE: filepath.Walk (baseline) ===
+goos: darwin
+goarch: arm64
+pkg: github.com/AnuchitO/re/traverse
+cpu: Apple M4 Max
+BenchmarkIsModify_NoChange-16    	   66277	     16910 ns/op	    7280 B/op	      53 allocs/op
+BenchmarkIsModify_NoChange-16    	   72090	     16824 ns/op	    7280 B/op	      53 allocs/op
+BenchmarkIsModify_NoChange-16    	   69998	     17012 ns/op	    7280 B/op	      53 allocs/op
+BenchmarkIsModify_NoChange-16    	   69105	     17092 ns/op	    7280 B/op	      53 allocs/op
+BenchmarkIsModify_NoChange-16    	   70038	     17003 ns/op	    7280 B/op	      53 allocs/op
+BenchmarkIsModify_Change-16      	   71430	     17397 ns/op	    7280 B/op	      53 allocs/op
+BenchmarkIsModify_Change-16      	   69051	     17212 ns/op	    7280 B/op	      53 allocs/op
+BenchmarkIsModify_Change-16      	   69620	     17198 ns/op	    7280 B/op	      53 allocs/op
+BenchmarkIsModify_Change-16      	   69740	     17114 ns/op	    7280 B/op	      53 allocs/op
+BenchmarkIsModify_Change-16      	   71692	     17260 ns/op	    7280 B/op	      53 allocs/op
+BenchmarkWalkFunc_NoChange-16    	  102032	     11833 ns/op	    2688 B/op	      33 allocs/op
+BenchmarkWalkFunc_NoChange-16    	  102529	     11791 ns/op	    2688 B/op	      33 allocs/op
+BenchmarkWalkFunc_NoChange-16    	  103252	     11728 ns/op	    2688 B/op	      33 allocs/op
+BenchmarkWalkFunc_NoChange-16    	  101332	     11948 ns/op	    2688 B/op	      33 allocs/op
+BenchmarkWalkFunc_NoChange-16    	   99812	     11856 ns/op	    2688 B/op	      33 allocs/op
+PASS
+ok  	github.com/AnuchitO/re/traverse	20.489s
+
+=== AFTER: filepath.WalkDir (optimized) ===
+goos: darwin
+goarch: arm64
+pkg: github.com/AnuchitO/re/traverse
+cpu: Apple M4 Max
+BenchmarkIsModify_NoChange-16    	  210403	      5665 ns/op	    4816 B/op	      23 allocs/op
+BenchmarkIsModify_NoChange-16    	  213493	      5647 ns/op	    4816 B/op	      23 allocs/op
+BenchmarkIsModify_NoChange-16    	  211464	      5706 ns/op	    4816 B/op	      23 allocs/op
+BenchmarkIsModify_NoChange-16    	  206246	      5973 ns/op	    4816 B/op	      23 allocs/op
+BenchmarkIsModify_NoChange-16    	  182854	      5790 ns/op	    4816 B/op	      23 allocs/op
+BenchmarkIsModify_Change-16      	  195344	      5857 ns/op	    4816 B/op	      23 allocs/op
+BenchmarkIsModify_Change-16      	  195864	      5789 ns/op	    4816 B/op	      23 allocs/op
+BenchmarkIsModify_Change-16      	  204669	      5739 ns/op	    4816 B/op	      23 allocs/op
+BenchmarkIsModify_Change-16      	  207988	      5709 ns/op	    4816 B/op	      23 allocs/op
+BenchmarkIsModify_Change-16      	  210285	      5775 ns/op	    4816 B/op	      23 allocs/op
+BenchmarkWalkFunc_NoChange-16    	 2274393	       527.8 ns/op	     227 B/op	       3 allocs/op
+BenchmarkWalkFunc_NoChange-16    	 2258574	       526.0 ns/op	     227 B/op	       3 allocs/op
+BenchmarkWalkFunc_NoChange-16    	 2273749	       527.6 ns/op	     227 B/op	       3 allocs/op
+BenchmarkWalkFunc_NoChange-16    	 2278921	       527.4 ns/op	     227 B/op	       3 allocs/op
+BenchmarkWalkFunc_NoChange-16    	 2253493	       529.5 ns/op	     227 B/op	       3 allocs/op
+PASS
+ok  	github.com/AnuchitO/re/traverse	22.170s
+
+
+  ┌───────────────────┬──────────────────────────────────┬─────────────────────────────────┬───────────────────────────────┐
+  │     Benchmark     │          Before (Walk)           │         After (WalkDir)         │            Speedup            │
+  ├───────────────────┼──────────────────────────────────┼─────────────────────────────────┼───────────────────────────────┤
+  │ IsModify_NoChange │ ~17,000 ns/op, 7280 B, 53 allocs │ ~5,700 ns/op, 4816 B, 23 allocs │ ~3x faster, 56% fewer allocs  │
+  ├───────────────────┼──────────────────────────────────┼─────────────────────────────────┼───────────────────────────────┤
+  │ IsModify_Change   │ ~17,200 ns/op, 7280 B, 53 allocs │ ~5,770 ns/op, 4816 B, 23 allocs │ ~3x faster, 56% fewer allocs  │
+  ├───────────────────┼──────────────────────────────────┼─────────────────────────────────┼───────────────────────────────┤
+  │ WalkFunc_NoChange │ ~11,800 ns/op, 2688 B, 33 allocs │ ~528 ns/op, 227 B, 3 allocs     │ ~22x faster, 91% fewer allocs │
+  └───────────────────┴──────────────────────────────────┴─────────────────────────────────┴───────────────────────────────┘
+

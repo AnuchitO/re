@@ -2,8 +2,14 @@ package main
 
 import (
 	"errors"
+	"flag"
+	"os"
+	"os/exec"
+	"os/signal"
 	"reflect"
+	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -74,3 +80,124 @@ func TestRerun(t *testing.T) {
 		assert.True(t, true, "should be pass")
 	})
 }
+
+// TestHelperProcess is used as a subprocess target for integration tests.
+func TestHelperProcess(t *testing.T) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
+		return
+	}
+
+	if os.Getenv("FAIL_GETWD") == "1" {
+		getwd = func() (string, error) { return "", errors.New("mock getwd error") }
+	}
+
+	// Find the "--" separator and use args after it as os.Args
+	args := os.Args
+	for i, a := range args {
+		if a == "--" {
+			os.Args = append([]string{os.Args[0]}, args[i+1:]...)
+			break
+		}
+	}
+
+	// Reset flags so flag.Parse() in main() works fresh
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+
+	main()
+}
+
+func TestMainDirect(t *testing.T) {
+	t.Run("version flag", func(t *testing.T) {
+		origArgs := os.Args
+		defer func() { os.Args = origArgs }()
+
+		os.Args = []string{"re", "-version"}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+
+		// Capture stdout
+		r, w, err := os.Pipe()
+		if err != nil {
+			t.Fatal(err)
+		}
+		origStdout := os.Stdout
+		os.Stdout = w
+
+		main()
+
+		w.Close()
+		os.Stdout = origStdout
+
+		var buf strings.Builder
+		_, _ = strings.NewReader("").WriteTo(nil)
+		b := make([]byte, 1024)
+		n, _ := r.Read(b)
+		buf.Write(b[:n])
+		r.Close()
+
+		assert.Contains(t, buf.String(), "dev")
+	})
+
+	t.Run("ignore flag", func(t *testing.T) {
+		origArgs := os.Args
+		defer func() { os.Args = origArgs }()
+
+		os.Args = []string{"re", "-ignore", "*.log", "go", "version"}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+
+		// Send interrupt to the current process after a short delay
+		go func() {
+			time.Sleep(300 * time.Millisecond)
+			p, _ := os.FindProcess(os.Getpid())
+			_ = p.Signal(os.Interrupt)
+		}()
+
+		main()
+	})
+}
+
+func TestMain(t *testing.T) {
+	t.Run("version", func(t *testing.T) {
+		cmd := exec.Command(os.Args[0], "-test.run=TestHelperProcess", "--", "-version")
+		cmd.Env = append(os.Environ(), "GO_WANT_HELPER_PROCESS=1")
+		out, err := cmd.Output()
+		assert.NoError(t, err)
+		assert.Contains(t, string(out), "dev")
+	})
+
+	t.Run("no args", func(t *testing.T) {
+		cmd := exec.Command(os.Args[0], "-test.run=TestHelperProcess", "--")
+		cmd.Env = append(os.Environ(), "GO_WANT_HELPER_PROCESS=1")
+		err := cmd.Run()
+		assert.Error(t, err)
+	})
+
+	t.Run("with ignore and signal", func(t *testing.T) {
+		cmd := exec.Command(os.Args[0], "-test.run=TestHelperProcess", "--", "-ignore", "*.log", "go", "version")
+		cmd.Env = append(os.Environ(), "GO_WANT_HELPER_PROCESS=1")
+		var buf strings.Builder
+		cmd.Stdout = &buf
+		cmd.Stderr = &buf
+		err := cmd.Start()
+		assert.NoError(t, err)
+
+		time.Sleep(500 * time.Millisecond)
+		err = cmd.Process.Signal(syscall.SIGINT)
+		assert.NoError(t, err)
+
+		err = cmd.Wait()
+		// Process may exit with signal error code, that's fine
+		_ = err
+		assert.Contains(t, buf.String(), "process terminated")
+	})
+
+	t.Run("getwd error", func(t *testing.T) {
+		cmd := exec.Command(os.Args[0], "-test.run=TestHelperProcess", "--", "go", "version")
+		cmd.Env = append(os.Environ(), "GO_WANT_HELPER_PROCESS=1", "FAIL_GETWD=1")
+		err := cmd.Run()
+		assert.Error(t, err)
+	})
+}
+
+// Ensure signal and os imports are used (suppress unused import errors)
+var _ = signal.Notify
+var _ = syscall.SIGINT

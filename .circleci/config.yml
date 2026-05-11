@@ -1,18 +1,28 @@
-version: 2
+version: 2.1
 
 jobs:
   build:
     docker:
-      # specify the version
-      - image: circleci/golang:1.12.1
-
-    working_directory: /go/src/github.com/AnuchitO/re
+      - image: cimg/go:1.22
     steps:
       - checkout
-      - run: go get -v -t -d ./...
-      - run: go test -v ./...
       - run:
+          name: Download dependencies
+          command: go mod download
+      - run:
+          name: Vet
+          command: go vet ./...
+      - run:
+          name: Test
+          command: go test -v ./...
+      - run:
+          name: Coverage report
           command: |
-            go get github.com/mattn/goveralls
             go test -covermode=count -coverprofile=coverage.out -v ./...
+            go install github.com/mattn/goveralls@latest
             goveralls -coverprofile=coverage.out -service=circleci -repotoken $COVERALLS_TOKEN
+
+workflows:
+  build-and-test:
+    jobs:
+      - build

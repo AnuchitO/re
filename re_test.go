@@ -13,8 +13,8 @@ import (
 )
 
 func TestSplitArguments(t *testing.T) {
-	t.Run("arguments have less than two element should be error", func(t *testing.T) {
-		args := []string{"re"}
+	t.Run("no arguments should return error", func(t *testing.T) {
+		args := []string{}
 
 		_, _, err := splitCommand(args)
 
@@ -24,28 +24,18 @@ func TestSplitArguments(t *testing.T) {
 		}
 	})
 
-	t.Run("arguments should have two element at least", func(t *testing.T) {
-		args := []string{"re", "go"}
+	t.Run("single argument should succeed without error", func(t *testing.T) {
+		args := []string{"go"}
 
 		_, _, err := splitCommand(args)
 
 		if err != nil {
-			t.Errorf("expect with out any error but got %v", err)
+			t.Errorf("expect without any error but got %v", err)
 		}
 	})
 
-	t.Run("arguments should have two element at least", func(t *testing.T) {
-		args := []string{"re", "go"}
-
-		_, _, err := splitCommand(args)
-
-		if err != nil {
-			t.Errorf("expect with out any error but got %v", err)
-		}
-	})
-
-	t.Run("arguments index 1 should be command", func(t *testing.T) {
-		args := []string{"re", "go", "test", "-v", "."}
+	t.Run("first argument should be the command", func(t *testing.T) {
+		args := []string{"go", "test", "-v", "."}
 
 		prog, _, _ := splitCommand(args)
 
@@ -54,8 +44,8 @@ func TestSplitArguments(t *testing.T) {
 		}
 	})
 
-	t.Run("arguments index 2 until the end should be params of the command", func(t *testing.T) {
-		args := []string{"re", "go", "test", "-v", "."}
+	t.Run("arguments from index 1 onwards should be params of the command", func(t *testing.T) {
+		args := []string{"go", "test", "-v", "."}
 
 		_, params, _ := splitCommand(args)
 
@@ -63,12 +53,11 @@ func TestSplitArguments(t *testing.T) {
 		if !reflect.DeepEqual(eParams, params) {
 			t.Errorf("expect params is %q but got %q", eParams, params)
 		}
-
 	})
 }
 
 func TestRerun(t *testing.T) {
-	t.Run("example testing", func(t *testing.T) {
+	t.Run("run loop should execute command and stop on signal", func(t *testing.T) {
 		task := runner.New("go", []string{"version"}...)
 		stop := make(chan struct{})
 		var wg sync.WaitGroup
@@ -78,7 +67,7 @@ func TestRerun(t *testing.T) {
 			close(stop)
 		})
 
-		run(".", task, stop, &wg)
+		run(".", task, stop, &wg, 800*time.Millisecond, nil)
 
 		wg.Wait()
 

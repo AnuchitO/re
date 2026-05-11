@@ -10,9 +10,10 @@ import (
 func BenchmarkIsModify_NoChange(b *testing.B) {
 	dir := ".."
 	lastMod := time.Now()
+	patterns := ReadGitignore(dir)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		IsModify(dir, lastMod)
+		IsModify(dir, lastMod, patterns)
 	}
 }
 
@@ -21,9 +22,10 @@ func BenchmarkIsModify_NoChange(b *testing.B) {
 func BenchmarkIsModify_Change(b *testing.B) {
 	dir := ".."
 	lastMod := time.Time{} // zero — every file is "newer"
+	patterns := ReadGitignore(dir)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		IsModify(dir, lastMod)
+		IsModify(dir, lastMod, patterns)
 	}
 }
 

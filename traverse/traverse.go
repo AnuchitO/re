@@ -66,10 +66,10 @@ func isHiddenFile(name string) bool {
 	return name != "." && strings.HasPrefix(name, ".")
 }
 
-// readGitignore returns simple glob patterns from .gitignore in the given directory.
+// ReadGitignore returns simple glob patterns from .gitignore in the given directory.
 // Lines starting with # and empty lines are ignored.
 // Note: only simple glob patterns (e.g. *.log, vendor) are supported.
-func readGitignore(dir string) []string {
+func ReadGitignore(dir string) []string {
 	f, err := os.Open(filepath.Join(dir, ".gitignore"))
 	if err != nil {
 		return nil
@@ -99,10 +99,8 @@ func walk(dir string, lastMod time.Time, patterns []string) error {
 }
 
 // IsModify checks if any file in dir has been modified after lastMod.
-// It automatically reads .gitignore patterns and also accepts additional
-// ignore patterns via extraIgnore (supports filepath.Match glob syntax).
-func IsModify(dir string, lastMod time.Time, extraIgnore ...string) bool {
-	patterns := append(readGitignore(dir), extraIgnore...)
-	err := walk(dir, lastMod, patterns)
-	return err == errHasModify
+// patterns should be pre-built by the caller (e.g. via ReadGitignore) and
+// cached across calls to avoid repeated file I/O on every poll.
+func IsModify(dir string, lastMod time.Time, patterns []string) bool {
+	return walk(dir, lastMod, patterns) == errHasModify
 }

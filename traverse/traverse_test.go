@@ -14,7 +14,7 @@ func TestRunnerWalk(t *testing.T) {
 		now := time.Now()
 		dir := "."
 
-		mod := IsModify(dir, now)
+		mod := IsModify(dir, now, nil)
 
 		assert.False(t, mod, "should return last modify time.")
 	})
@@ -24,7 +24,7 @@ func TestRunnerWalk(t *testing.T) {
 		lastMod, _ := time.Parse(form, "Sat Feb 08 07:00:00 1992")
 		dir := "."
 
-		mod := IsModify(dir, lastMod)
+		mod := IsModify(dir, lastMod, nil)
 
 		assert.True(t, mod, "should return lastest modify time.")
 	})

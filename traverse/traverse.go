@@ -3,6 +3,7 @@ package traverse
 import (
 	"bufio"
 	"errors"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -60,7 +61,11 @@ func readGitignore(dir string) []string {
 	if err != nil {
 		return nil
 	}
-	defer func() { _ = f.Close() }()
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Printf("close .gitignore: %v", err)
+		}
+	}()
 
 	var patterns []string
 	scanner := bufio.NewScanner(f)

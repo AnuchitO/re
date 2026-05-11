@@ -5,6 +5,7 @@ package runner
 
 import (
 	"errors"
+	"log"
 	"os/exec"
 	"syscall"
 	"time"
@@ -33,12 +34,16 @@ func (r *Runner) KillCommand() error {
 	pid := r.cmd.Process.Pid
 	done := make(chan struct{})
 	go func() {
-		_ = r.cmd.Wait()
+		if err := r.cmd.Wait(); err != nil {
+			log.Printf("process exited: %v", err)
+		}
 		close(done)
 	}()
 
-	// try soft kill
-	_ = syscall.Kill(-pid, syscall.SIGINT)
+	// try soft kill; log but continue — the hard kill handles the timeout case
+	if err := syscall.Kill(-pid, syscall.SIGINT); err != nil {
+		log.Printf("SIGINT to process group %d: %v", pid, err)
+	}
 	select {
 	case <-time.After(3 * time.Second):
 		// go hard because soft is not always the solution

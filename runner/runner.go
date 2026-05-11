@@ -11,6 +11,7 @@ type Runner struct {
 	prog   string
 	args   []string
 	cmd    *exec.Cmd
+	done   chan struct{} // closed when cmd exits naturally or is killed
 	stdout io.Writer
 	stderr io.Writer
 }

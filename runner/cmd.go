@@ -18,8 +18,21 @@ func (r *Runner) Start() error {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
 	r.cmd = cmd
+	r.done = make(chan struct{})
 
-	return r.cmd.Start()
+	if err := cmd.Start(); err != nil {
+		close(r.done)
+		return err
+	}
+
+	go func() {
+		if err := cmd.Wait(); err != nil {
+			log.Printf("process exited: %v", err)
+		}
+		close(r.done)
+	}()
+
+	return nil
 }
 
 func (r *Runner) KillCommand() error {
@@ -31,14 +44,14 @@ func (r *Runner) KillCommand() error {
 		return nil
 	}
 
+	// Process already exited naturally — nothing to kill.
+	select {
+	case <-r.done:
+		return nil
+	default:
+	}
+
 	pid := r.cmd.Process.Pid
-	done := make(chan struct{})
-	go func() {
-		if err := r.cmd.Wait(); err != nil {
-			log.Printf("process exited: %v", err)
-		}
-		close(done)
-	}()
 
 	// try soft kill; log but continue — the hard kill handles the timeout case
 	if err := syscall.Kill(-pid, syscall.SIGINT); err != nil {
@@ -47,11 +60,10 @@ func (r *Runner) KillCommand() error {
 	select {
 	case <-time.After(3 * time.Second):
 		// go hard because soft is not always the solution
-		err := syscall.Kill(-pid, syscall.SIGKILL)
-		if err != nil {
+		if err := syscall.Kill(-pid, syscall.SIGKILL); err != nil {
 			return errors.New("fail killing ongoing process")
 		}
-	case <-done:
+	case <-r.done:
 	}
 
 	return nil

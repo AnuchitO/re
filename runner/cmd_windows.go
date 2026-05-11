@@ -55,8 +55,19 @@ func (r *Runner) Start() error {
 	cmd.Stderr = r.stderr
 
 	r.cmd = cmd
+	r.done = make(chan struct{})
 
-	return r.cmd.Start()
+	if err := cmd.Start(); err != nil {
+		close(r.done)
+		return err
+	}
+
+	go func() {
+		cmd.Wait() //nolint:errcheck
+		close(r.done)
+	}()
+
+	return nil
 }
 
 func (r *Runner) KillCommand() error {
@@ -68,13 +79,15 @@ func (r *Runner) KillCommand() error {
 		return nil
 	}
 
-	pid := r.cmd.Process.Pid
+	// Process already exited naturally — nothing to kill.
+	select {
+	case <-r.done:
+		return nil
+	default:
+	}
 
-	done := make(chan struct{})
-	go func() {
-		r.cmd.Wait()
-		close(done)
-	}()
+	pid := r.cmd.Process.Pid
+	cmd := r.cmd
 
 	if err := kill(pid); err != nil {
 		log.Println("kill error: ", err)
@@ -83,10 +96,10 @@ func (r *Runner) KillCommand() error {
 
 	select {
 	case <-time.After(3 * time.Second):
-		if err := r.cmd.Process.Kill(); err != nil {
+		if err := cmd.Process.Kill(); err != nil {
 			log.Println("failed to kill: ", err)
 		}
-	case <-done:
+	case <-r.done:
 	}
 
 	return nil

@@ -31,6 +31,20 @@ type iRunner interface {
 	KillCommand() error
 }
 
+// Done returns a channel that is closed when the command exits.
+func (r *Runner) Done() <-chan struct{} {
+	return r.done
+}
+
+// SetStdout replaces the writer used for the command's stdout.
+// Must be called before Run/Start.
+func (r *Runner) SetStdout(w io.Writer) { r.stdout = w }
+
+// SetStderr replaces the writer used for the command's stderr.
+// Must be called before Run/Start.
+func (r *Runner) SetStderr(w io.Writer) { r.stderr = w }
+
+
 // Run starts the runner
 func (r *Runner) Run() error {
 	return run(r)
